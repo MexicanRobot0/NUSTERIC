@@ -1,0 +1,61 @@
+from fractions import Fraction
+from functools import reduce
+
+def lcm(a, b):
+    return a * b // gcd(a, b)
+
+def gcd(a, b):
+    while b:
+        a, b = b, a % b
+    return a
+
+def matrix_multiply(matrix1, matrix2):
+    result = []
+    for i in range(len(matrix1)):
+        row = []
+        for j in range(len(matrix2[0])):
+            value = sum(matrix1[i][k] * matrix2[k][j] for k in range(len(matrix2)))
+            row.append(value)
+        result.append(row)
+    return result
+
+def solution(m):
+    # Convert the transition matrix to a Fraction matrix
+    matrix = [list(map(Fraction, row)) for row in m]
+    
+    # Initialize the probabilities array for each terminal state
+    probabilities = [Fraction(0) for _ in range(len(matrix))]
+    
+    # Perform matrix operations to compute probabilities
+    for _ in range(len(matrix)):
+        for i in range(len(matrix)):
+            total_transitions = sum(matrix[i])
+            if total_transitions == 0:
+                continue  # Skip terminal states
+            matrix[i] = [x / total_transitions for x in matrix[i]]
+            probabilities[i] += matrix[i][-1]  # Update probability of reaching terminal state
+        
+        # Update the matrix for the next iteration
+        matrix = matrix_multiply(matrix, m)
+    
+    # Find the least common multiple of denominators
+    common_denominator = reduce(lcm, [frac.denominator for frac in probabilities])
+    
+    # Convert fractions to their equivalent with the common denominator
+    result = [frac.numerator * (common_denominator // frac.denominator) for frac in probabilities]
+    
+    # Add the common denominator to the result
+    result.append(common_denominator)
+    
+    return result
+
+# Example usage:
+m = [
+    [0, 1, 0, 0, 0],
+    [4, 0, 3, 2, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+]
+result = solution(m)
+print(result)
